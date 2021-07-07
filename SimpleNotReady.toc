@@ -1,0 +1,8 @@
+## Interface: 90100
+## Title: |cFFFF69B4Simple Not Ready|r by |cFFDFFB58LolWTFRyan|r
+## Author: LolWTFRyan
+## Version: 0.0.1
+## SavedVariablesPerCharacter: IgnoredSpellsList NotReadyText NotReadyChatChannel AutoDeclineReadyCheck IncludeEquippedItems
+
+SimpleNotReady.lua
+SimpleNotReady.xml

@@ -51,7 +51,6 @@ local function getSpells()
                     newSpellObj.name = spellName
                     newSpellObj.type = "toggle"
                     newSpellObj.set = function(_, val)
-                        print(spellName, val)
                         IgnoredSpellsList[tostring(spellId)] = val
                     end
                     newSpellObj.get = function(_)
@@ -98,13 +97,15 @@ local function getConfig(info)
             },
             chatChannel = {
                 name = "Chat Channel to Announce To",
+                desc = "GROUP will output to raid if you're in a raid group\r\nPARTY will only output to party",
                 type = "select",
                 width = "double",
                 order = 1,
                 values = {
                     ["SAY"] = "SAY",
                     ["YELL"] = "YELL",
-                    ["GROUP"] = "GROUP"
+                    ["GROUP"] = "GROUP",
+                    ["PARTY"] = "PARTY"
                 },
                 set = function(_, val)
                     NotReadyChatChannel = val
@@ -246,11 +247,17 @@ frMain:SetScript(
                     return
                 end
 
-                if (msgType == "GROUP") and (IsInGroup("PARTY")) then
-                    msgType = "PARTY"
-                elseif (msgType == "GROUP") and (IsInRaid()) then
+                -- This is kinda wonky
+                if (msgType == "GROUP") and (IsInRaid()) then
                     msgType = "RAID"
-                elseif (msgType == "GROUP") and not IsInGroup() then
+                end
+                
+                if (msgType == "GROUP") and ((not IsInRaid()) and IsInGroup()) then
+                    msgType = "PARTY"
+                end
+
+                -- One last check
+                if (msgType == "GROUP" or msgType == "PARTY") and not IsInGroup() then
                     print("Unable to send message to group: You are not currently in a group")
                     return
                 end

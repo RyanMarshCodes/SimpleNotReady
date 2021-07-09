@@ -2,7 +2,7 @@
 ## Title: |cFFFF69B4Simple Not Ready|r by |cFFDFFB58LolWTFRyan|r
 ## Author: LolWTFRyan
 ## Version: 0.0.3
-## SavedVariablesPerCharacter: IgnoredSpellsList NotReadyText NotReadyChatChannel AutoDeclineReadyCheck IncludeEquippedItems CooldownThreshold
+## SavedVariablesPerCharacter: IgnoredSpellsList NotReadyText NotReadyChatChannel AutoDeclineReadyCheck IncludeEquippedItems CooldownThreshold TriggerOnPullTimer
 ## X-Website: https://www.curseforge.com/wow/addons/simple-not-ready/
 ## X-Curse-Project-ID: 501439
 

@@ -1,5 +1,6 @@
 local optionsMenu = nil
 local prevpos = false
+local lastEvent = nil
 
 local char_to_hex = function(c)
     return string.format("%%%02X", string.byte(c))
@@ -88,6 +89,16 @@ local function getConfig(info)
                     return CooldownThreshold
                 end
             },
+            triggeronPullTimer = {
+                name = "Trigger On Pull Timer",
+                type = "toggle",
+                set = function(info, val)
+                    TriggerOnPullTimer = val
+                end,
+                get = function(info)
+                    return TriggerOnPullTimer
+                end
+            },
             includeEquippedItems = {
                 name = "Include Equipped Items",
                 type = "toggle",
@@ -165,6 +176,7 @@ local frMain = CreateFrame("ScrollFrame", "SimpleNotReadyFrame", UIParent)
 frMain:RegisterEvent("ADDON_LOADED")
 frMain:RegisterEvent("READY_CHECK")
 frMain:RegisterEvent("PLAYER_LOGOUT")
+frMain:RegisterEvent("CHAT_MSG_ADDON")
 
 frMain:SetScript(
     "OnEvent",
@@ -195,12 +207,46 @@ frMain:SetScript(
                 CooldownThreshold = 5
             end
 
+            if TriggerOnPullTimer == nil then
+                TriggerOnPullTimer = false
+            end
+
             -- add to WoW Interface Options
             LibStub("AceConfigRegistry-3.0"):RegisterOptionsTable("SimpleNotReady", getConfig)
             optionsMenu = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("SimpleNotReady", "SimpleNotReady")
-        elseif (event == "PLAYER_ENTERING_WORLD") or (event == "PLAYER_TALENT_UPDATE") then
-            -- update spells in ignore list...
-        elseif (event == "READY_CHECK") then
+        elseif
+            ((event == "READY_CHECK") or (event == "CHAT_MSG_ADDON" and TriggerOnPullTimer)) and
+                (lastEvent == nil or lastEvent < (GetTime() - 1))
+         then
+            local timeLeft = CooldownThreshold
+
+            if (event == "CHAT_MSG_ADDON") then
+                local prefix, message = ...
+                if prefix == "BigWigs" and string.find(message, "Pull") then
+                    local timer = string.match(message, "%d+")
+                    timeLeft = tonumber(timer)
+
+                    if timeLeft == 0 then
+                        -- pull was cancelled
+                        return
+                    end
+
+                    lastEvent = GetTime()
+                elseif prefix == "D4" and string.find(message, "PT") then
+                    local timer = string.match(message, "\t(%d+)\t")
+                    timeLeft = tonumber(timer)
+
+                    if timeLeft == 0 then
+                        -- pull was cancelled
+                        return
+                    end
+
+                    lastEvent = GetTime()
+                else
+                    return
+                end
+            end
+
             local longestCDLink = nil
             local longestCDDuration = 0
 
@@ -226,7 +272,7 @@ frMain:SetScript(
                         if (cdStart ~= nil and cdStart > 0) and (cdDuration ~= nil and cdDuration > 0) then
                             local remainingTime = cdStart + cdDuration - GetTime()
 
-                            if (remainingTime > longestCDDuration and remainingTime > CooldownThreshold) then
+                            if (remainingTime > longestCDDuration and remainingTime > timeLeft) then
                                 longestCDLink = select(1, GetSpellLink(spellId))
                                 longestCDDuration = math.ceil(remainingTime)
                             end
@@ -247,7 +293,7 @@ frMain:SetScript(
                         if (start ~= nil and start > 0) and (duration ~= nil and duration > 0) then
                             local remainingTime = start + duration - GetTime()
 
-                            if (remainingTime > longestCDDuration and remainingTime > threshold) then
+                            if (remainingTime > longestCDDuration and remainingTime > timeLeft) then
                                 longestCDLink = itemLink
                                 longestCDDuration = math.ceil(remainingTime)
                             end

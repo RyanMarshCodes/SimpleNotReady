@@ -73,6 +73,21 @@ local function getConfig(info)
     local snrOptionsTable = {
         type = "group",
         args = {
+            cooldownThreshold = {
+                name = "Ignore cooldowns under x seconds",
+                type = "range",
+                min = 1,
+                softMin = 2,
+                max = 120,
+                softMax = 120,
+                step = 1,
+                set = function(info, val)
+                    CooldownThreshold = math.ceil(val)
+                end,
+                get = function(info)
+                    return CooldownThreshold
+                end
+            },
             includeEquippedItems = {
                 name = "Include Equipped Items",
                 type = "toggle",
@@ -100,7 +115,6 @@ local function getConfig(info)
                 desc = "GROUP will output to raid if you're in a raid group\r\nPARTY will only output to party",
                 type = "select",
                 width = "double",
-                order = 1,
                 values = {
                     ["SAY"] = "SAY",
                     ["YELL"] = "YELL",
@@ -119,7 +133,6 @@ local function getConfig(info)
                 type = "input",
                 desc = "Usable variables: [[Remaining]], [[SpellLink]]\r\n\r\nNote: Automated messages to SAY or YELL are disabled outside of instances",
                 width = "double",
-                order = 2,
                 set = function(_, val)
                     NotReadyText = urlencode(val)
                 end,
@@ -178,6 +191,10 @@ frMain:SetScript(
                 IncludeEquippedItems = false
             end
 
+            if CooldownThreshold == nil then
+                CooldownThreshold = 5
+            end
+
             -- add to WoW Interface Options
             LibStub("AceConfigRegistry-3.0"):RegisterOptionsTable("SimpleNotReady", getConfig)
             optionsMenu = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("SimpleNotReady", "SimpleNotReady")
@@ -209,7 +226,7 @@ frMain:SetScript(
                         if (cdStart ~= nil and cdStart > 0) and (cdDuration ~= nil and cdDuration > 0) then
                             local remainingTime = cdStart + cdDuration - GetTime()
 
-                            if (remainingTime > longestCDDuration) then
+                            if (remainingTime > longestCDDuration and remainingTime > CooldownThreshold) then
                                 longestCDLink = select(1, GetSpellLink(spellId))
                                 longestCDDuration = math.ceil(remainingTime)
                             end
@@ -230,7 +247,7 @@ frMain:SetScript(
                         if (start ~= nil and start > 0) and (duration ~= nil and duration > 0) then
                             local remainingTime = start + duration - GetTime()
 
-                            if (remainingTime > longestCDDuration) then
+                            if (remainingTime > longestCDDuration and remainingTime > threshold) then
                                 longestCDLink = itemLink
                                 longestCDDuration = math.ceil(remainingTime)
                             end
@@ -251,7 +268,7 @@ frMain:SetScript(
                 if (msgType == "GROUP") and (IsInRaid()) then
                     msgType = "RAID"
                 end
-                
+
                 if (msgType == "GROUP") and ((not IsInRaid()) and IsInGroup()) then
                     msgType = "PARTY"
                 end

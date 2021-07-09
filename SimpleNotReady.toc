@@ -1,8 +1,10 @@
 ## Interface: 90100
 ## Title: |cFFFF69B4Simple Not Ready|r by |cFFDFFB58LolWTFRyan|r
 ## Author: LolWTFRyan
-## Version: 0.0.2
-## SavedVariablesPerCharacter: IgnoredSpellsList NotReadyText NotReadyChatChannel AutoDeclineReadyCheck IncludeEquippedItems
+## Version: 0.0.3
+## SavedVariablesPerCharacter: IgnoredSpellsList NotReadyText NotReadyChatChannel AutoDeclineReadyCheck IncludeEquippedItems CooldownThreshold
+## X-Website: https://www.curseforge.com/wow/addons/simple-not-ready/
+## X-Curse-Project-ID: 501439
 
 SimpleNotReady.lua
 SimpleNotReady.xml
